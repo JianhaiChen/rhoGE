@@ -3,7 +3,8 @@
 ## Alzheimer's disease through the package. Needs the study's intermediate files, so it is a
 ## validation script rather than a unit test; it is skipped when they are not present.
 suppressMessages({library(data.table); library(rhoGE)})
-M <- Sys.getenv("RHOGE_VALIDATION_DIR", "/Volumes/X10Pro/data/synergistic/mr_res")
+M <- Sys.getenv("RHOGE_VALIDATION_DIR", "")   # directory holding the published gene-level tables
+if (M == "") stop("set RHOGE_VALIDATION_DIR to the directory holding the published gene-level tables")
 need <- file.path(M, c("gene_level_b1_disease_acat_summary.dropbox.csv",
                        "gene_level_b2_fitness_acat_summary.dropbox.csv", "gene_coords_v19.tsv"))
 if (!all(file.exists(need))) { cat("validation data not present, skipping\n"); quit(save = "no") }
