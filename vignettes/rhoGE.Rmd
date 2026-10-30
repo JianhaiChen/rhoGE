@@ -1,0 +1,76 @@
+---
+title: "Expression-effect genetic correlation between two traits"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Expression-effect genetic correlation between two traits}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+`rho_GE` is the correlation, across genes, of the effect that genetically regulated expression has
+on two traits. It is estimated in four steps: instruments, a joint model per gene, aggregation
+across tissues, and the correlation itself.
+
+The package ships 25 chromosome-22 genes with their real skeletal-muscle instruments and two small
+simulated GWAS, so every step below runs here.
+
+```{r setup}
+library(rhoGE)
+set.seed(1)   # FusioMR is a sampler
+x <- function(f) system.file("extdata", f, package = "rhoGE")
+```
+
+## Instruments
+
+Instruments are cis-eQTLs below a P threshold, LD-pruned within a window, keeping genes with at
+least five of them. `build_instruments()` does this against a PLINK reference panel; it is the slow
+step and depends only on the eQTL resource, so build it once and reuse it for every pair of traits.
+A prebuilt GTEx v10 set over 50 tissues is on the release page. Here we load the shipped subset:
+
+```{r}
+iv <- data.table::fread(x("instruments_chr22_muscle.tsv.gz"))
+head(iv, 3)
+```
+
+## Both traits in one model
+
+`read_gwas()` matches the usual column names automatically. `fusio_pair()` aligns each instrument
+to both GWAS and fits the single-exposure, multiple-outcome model of FusioMR, which keeps the two
+effects on a common scale and shares information about pleiotropy between them.
+
+```{r}
+g1 <- read_gwas(x("gwas_trait1.tsv.gz"))
+g2 <- read_gwas(x("gwas_trait2.tsv.gz"))
+fit <- fusio_pair(g1, g2, iv, control = FusioMR::parameter_control(niter = 4000))
+head(fit, 3)
+```
+
+## One row per gene
+
+With several tissues, `aggregate_genes()` combines their P values with ACAT and takes the direction
+from the most significant tissue. ACAT is valid under arbitrary correlation between tissues, so
+adding tissues does not multiply the number of tests.
+
+```{r}
+genes <- aggregate_genes(fit)
+co <- data.table::fread(x("gene_coords_v19.tsv.gz"), col.names = c("gene", "chr", "pos"))
+genes <- merge(genes, co, by = "gene")
+```
+
+## The correlation, and the directional classes
+
+Neighbouring genes share instruments, so the confidence interval comes from a jackknife over
+genomic blocks rather than over genes.
+
+```{r}
+rho_ge(genes, block = genes$pos %/% 5e6, chr = genes$chr, pos = genes$pos)
+direction_classes(genes)$shares
+```
+
+The class names come from the disease–fitness setting, where an expression change that raises
+liability while raising fitness is antagonistic; rename them if that reading does not fit your two
+traits.

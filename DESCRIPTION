@@ -1,0 +1,20 @@
+Package: rhoGE
+Type: Package
+Title: Expression-Effect Genetic Correlation Between Two Traits
+Version: 0.1.0
+Authors@R: person("Jianhai", "Chen", email = "jianhaic@uci.edu", role = c("aut", "cre"))
+Description: Estimates the expression-effect genetic correlation (rho_GE) between any two
+    traits from GWAS summary statistics. For each gene and tissue, cis-eQTLs are used as
+    instruments and the effects of genetically regulated expression on both traits are
+    estimated jointly with FusioMR; tissue-level evidence is combined per gene with the
+    aggregated Cauchy association test, and rho_GE is the correlation of the gene-level
+    effects across genes. Genes are also classified into the four directional classes
+    (d+f+, d+f-, d-f+, d-f-) that distinguish antagonistic from synergistic pleiotropy.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends: R (>= 4.0.0)
+Imports: data.table, stats, FusioMR (>= 2.0.0)
+Suggests: BEDMatrix, testthat (>= 3.0.0), knitr, rmarkdown
+VignetteBuilder: knitr
+Remotes: kangbw702/FusioMR
+RoxygenNote: 7.3.2
