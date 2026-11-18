@@ -78,16 +78,24 @@ rho_ge <- function(genes, block = NULL, chr = NULL, pos = NULL, z_max = 9,
 #'
 #' @param genes output of \code{\link{aggregate_genes}}.
 #' @param fdr Benjamini-Hochberg threshold applied to each trait separately.
-#' @return the selected genes with a class column, and the share of each class.
+#' @return a list with \code{genes} (the selected genes, each labelled with its class and with
+#'   \code{type}, antagonistic or synergistic), \code{shares} (the count and share of each class),
+#'   the two overall shares, the number of classified genes, and \code{P}, a two-sided binomial test
+#'   of whether antagonistic and synergistic genes are equally common.
 #' @export
 direction_classes <- function(genes, fdr = 0.05) {
   d <- data.table::as.data.table(genes)
   d[, `:=`(q1 = stats::p.adjust(p1_acat, "BH"), q2 = stats::p.adjust(p2_acat, "BH"))]
   s <- d[q1 < fdr & q2 < fdr]
-  if (!nrow(s)) return(list(genes = s, shares = NULL))
+  if (!nrow(s)) return(list(genes = s, shares = NULL, n_genes = 0L))
   s[, class := paste0(data.table::fifelse(b1 > 0, "d+", "d-"), data.table::fifelse(b2 > 0, "f+", "f-"))]
-  sh <- s[, .(n = .N, share = .N / nrow(s)), by = class][order(class)]
+  ## the label that matters biologically: a liability-raising change paired with a fitness benefit
+  s[, type := data.table::fifelse(class %in% c("d+f+", "d-f-"), "antagonistic", "synergistic")]
+  sh <- s[, .(n = .N, share = .N / nrow(s)), by = .(type, class)][order(type, class)]
+  n_ant <- sum(s$type == "antagonistic")
   list(genes = s[], shares = sh[],
-       antagonistic = sum(sh$share[sh$class %in% c("d+f+", "d-f-")]),
-       synergistic  = sum(sh$share[sh$class %in% c("d+f-", "d-f+")]))
+       antagonistic = n_ant / nrow(s),
+       synergistic  = 1 - n_ant / nrow(s),
+       n_genes = nrow(s),
+       P = stats::binom.test(n_ant, nrow(s), 0.5)$p.value)
 }

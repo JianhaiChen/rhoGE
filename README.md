@@ -34,7 +34,7 @@ iv <- build_instruments(eqtl_table, bfile = "1kg_EUR", p_thresh = 1e-3, r2 = 0.1
 fit   <- fusio_pair(g1, g2, iv)       # per gene and tissue
 genes <- aggregate_genes(fit)         # ACAT across tissues, one row per gene
 rho   <- rho_ge(genes, block = genes$block)   # correlation, jackknife CI over genomic blocks
-cls   <- direction_classes(genes)     # d+f+/d+f-/d-f+/d-f- shares
+cls   <- direction_classes(genes)     # per gene: class and antagonistic/synergistic; shares and a binomial test
 ```
 
 Command line:

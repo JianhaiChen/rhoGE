@@ -10,4 +10,7 @@ genes <- aggregate_genes(fit)
 co <- data.table::fread(x("gene_coords_v19.tsv.gz"), col.names = c("gene", "chr", "pos"))
 genes <- merge(genes, co, by = "gene")
 print(rho_ge(genes, block = genes$pos %/% 5e6, chr = genes$chr, pos = genes$pos))
-print(direction_classes(genes)$shares)
+cls <- direction_classes(genes)
+print(cls$shares)
+cat(sprintf("antagonistic %.1f%% of %d classified genes, binomial P = %.3g\n",
+            100 * cls$antagonistic, cls$n_genes, cls$P))

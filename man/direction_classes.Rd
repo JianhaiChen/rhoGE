@@ -12,7 +12,10 @@ direction_classes(genes, fdr = 0.05)
 \item{fdr}{Benjamini-Hochberg threshold applied to each trait separately.}
 }
 \value{
-the selected genes with a class column, and the share of each class.
+a list with \code{genes} (the selected genes, each labelled with its class and with
+  \code{type}, antagonistic or synergistic), \code{shares} (the count and share of each class),
+  the two overall shares, the number of classified genes, and \code{P}, a two-sided binomial test
+  of whether antagonistic and synergistic genes are equally common.
 }
 \description{
 Classifies each gene by the signs of its two effects, after selecting the genes that are

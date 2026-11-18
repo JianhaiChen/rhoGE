@@ -68,9 +68,12 @@ genomic blocks rather than over genes.
 
 ```{r}
 rho_ge(genes, block = genes$pos %/% 5e6, chr = genes$chr, pos = genes$pos)
-direction_classes(genes)$shares
+cls <- direction_classes(genes)
+cls$shares
+c(antagonistic = cls$antagonistic, n = cls$n_genes, P = cls$P)
 ```
 
-The class names come from the disease–fitness setting, where an expression change that raises
-liability while raising fitness is antagonistic; rename them if that reading does not fit your two
-traits.
+Each selected gene is returned with its class and with `type`, antagonistic or synergistic, and the
+binomial test asks whether the two are equally common. The class names come from the disease–fitness
+setting, where an expression change that raises liability while raising fitness is antagonistic;
+rename them if that reading does not fit your two traits.
